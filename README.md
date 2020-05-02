@@ -4,6 +4,7 @@
 - Dijkstra's Algorithm = weighted and gives shortest path
 
 ### TODO
+**Algorithms side**
 UNINFORMED SEARCH
 - Iterative Deepening Search
 - Bidirectional Search
@@ -14,6 +15,40 @@ INFORMED SEARCH (heuristics)
 - SMA* (simplified memory-bounded A*)
 MAZE GENERATIONS
 - Maze Division Algo = https://stackoverflow.com/questions/41553775/maze-generation-recursive-division-how-it-works
+
+**Frontend side**
+- Add use same board button which when clicked displays same board used before an algorithm is visualized
+- Update grid size responsively
+- Handle edge cases when start node, end node aren't defined
+
+
+## Adding new algorithm
+1. Write the algorithm in algorithms folder and export the function which returns visitedNodesInOrder array
+2. Inside PathfindingVisualizer.jsx
+            -> 'sidenav' div
+                -> dropdown-container div
+                 Add 3 buttons in this format given below in the example.
+3. Example = For adding Dijkstra's Algorithm, add these 3 buttons
+```
+<button onClick={() => this.handleEachAlgorithmDropdown("dijkstra")}>
+    Visualize Dijkstra's Algorithm
+    <button id="dijkstra_d" onClick={() => this.visualizeDijkstra(true)} >Diagonal Movement Allowed</button>
+    <button id="dijkstra_nd" onClick={() => this.visualizeDijkstra(false)} >No Diagonal Movement Allowed</button>
+</button>
+```
+4. In PathfindingVisualizer.css, in line no. 68 add #dijkstra_d,#dijkstra_nd to the rest of them.
+5. Next add the visualizeDijkstra() function in PathfindingVisualizer.jsx inside the class
+```
+visualizeDijkstra(diagonal) {
+    const { grid } = this.state;
+    const startNode = grid[START_NODE_ROW][START_NODE_COL];
+    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    //This dijkstra function needs to imported from the algorithm you have wrriten
+    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode, diagonal);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
+}
+```
 
 ## Real life uses
 https://www.oreilly.com/library/view/graph-algorithms/9781492047674/ch04.html

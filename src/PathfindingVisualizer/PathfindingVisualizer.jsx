@@ -122,34 +122,71 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
+  handleAlgorithmsDropdown() {
+    let algorithmsContainer = document.getElementById("dropdown-container").style;
+    if (algorithmsContainer.display === "block") {
+      algorithmsContainer.display = "none";
+    }
+    else {
+      algorithmsContainer.display = "block";
+    }
+  }
+
+  handleEachAlgorithmDropdown(algo) {
+    let diagonal = document.getElementById(algo + "_d").style;
+    let noDiagonal = document.getElementById(algo + "_nd").style;
+    if (diagonal.display === "block") {
+      diagonal.display = "none";
+    }
+    else {
+      diagonal.display = "block";
+    }
+    if (noDiagonal.display === "block") {
+      noDiagonal.display = "none";
+    }
+    else {
+      noDiagonal.display = "block";
+    }
+  }
+
   render() {
     const { grid } = this.state;
 
     return (
       <>
-        <button id="start_node" onClick={() => this.placeStartNode()}>
-          Start Node
-        </button>
-        <button id="end_node" onClick={() => this.placeEndNode()}>
-          End Node
-        </button>
-        <button id="bfs" onClick={() => this.visualizeBFS()}>
-          Visualize BFS Algorithm
-        </button>
-        <button id="dfs" onClick={() => this.visualizeDFS()}>
-          Visualize DFS Algorithm
-        </button>
-        <button id="dijkstra" onClick={() => this.visualizeDijkstra()}>
-          Visualize Dijkstra's Algorithm
-        </button>
-        <button id="astar" onClick={() => this.visualizeAStar()}>
-          Visualize A* Search Algorithm
-        </button>
-        <button id="clear" onClick={() => this.clearBoard()}>
-          Clear Board
-        </button>
+        <div className="sidenav">
+          <button id="start_node" onClick={() => this.placeStartNode()}>Start Node</button>
+          <button id="end_node" onClick={() => this.placeEndNode()}>End Node</button>
+          <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown()}>Algorithms<i className="fa fa-caret-down"></i></button>
+          <div className="dropdown-container" id="dropdown-container">
+            <button onClick={() => this.handleEachAlgorithmDropdown("bfs")}>
+              Visualize BFS Algorithm
+              <button id="bfs_d" onClick={() => this.visualizeBFS(true)} >Diagonal Movement Allowed</button>
+              <button id="bfs_nd" onClick={() => this.visualizeBFS(false)} >No Diagonal Movement Allowed</button>
+            </button>
+            <button onClick={() => this.handleEachAlgorithmDropdown("dfs")}>
+              Visualize DFS Algorithm
+              <button id="dfs_d" onClick={() => this.visualizeDFS(true)} >Diagonal Movement Allowed</button>
+              <button id="dfs_nd" onClick={() => this.visualizeDFS(false)} >No Diagonal Movement Allowed</button>
+            </button>
+            <button onClick={() => this.handleEachAlgorithmDropdown("dijkstra")}>
+              Visualize Dijkstra's Algorithm
+              <button id="dijkstra_d" onClick={() => this.visualizeDijkstra(true)} >Diagonal Movement Allowed</button>
+              <button id="dijkstra_nd" onClick={() => this.visualizeDijkstra(false)} >No Diagonal Movement Allowed</button>
+            </button>
+            <button onClick={() => this.handleEachAlgorithmDropdown("astar")}>
+              Visualize A* Search Algorithm
+              <button id="astar_d" onClick={() => this.visualizeAStar(true)} >Diagonal Movement Allowed</button>
+              <button id="astar_nd" onClick={() => this.visualizeAStar(false)} >No Diagonal Movement Allowed</button>
+            </button>
+          </div>
+          <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
+        </div>
 
-        <div className="grid">
+
+        <div className="main info">This is where info about algorithm is displayed</div>
+
+        <div className="grid main">
           {grid.map((row, rowIdx) => {
             return (
               <div key={rowIdx}>
@@ -176,31 +213,31 @@ export default class PathfindingVisualizer extends Component {
   }
 
   // Pathfinding Algorithms Helper FUnctions
-  visualizeDijkstra() {
+  visualizeDijkstra(diagonal) {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
-  visualizeBFS() {
+  visualizeBFS(diagonal) {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = bfs(grid, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode, diagonal);
     // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
-  visualizeDFS() {
+  visualizeDFS(diagonal) {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    const visitedNodesInOrder = dfs(grid, startNode, finishNode);
+    const visitedNodesInOrder = dfs(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
@@ -224,9 +261,11 @@ export default class PathfindingVisualizer extends Component {
   }
 
   animateShortestPath(nodesInShortestPathOrder) {
-    const firstNodeInShortestPath = nodesInShortestPathOrder[nodesInShortestPathOrder.length - 1];
+    const firstNodeInShortestPath = nodesInShortestPathOrder[0];
     if (!(firstNodeInShortestPath.row === START_NODE_ROW && firstNodeInShortestPath.col === START_NODE_COL)) {
-      alert("No Shortest Path");
+      setTimeout(() => {
+        alert("No Shortest Path");
+      }, 25)
       return;
     }
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
