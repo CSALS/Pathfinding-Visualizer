@@ -10,6 +10,7 @@ var START_NODE_ROW = -1;
 var START_NODE_COL = -1;
 var FINISH_NODE_ROW = -1;
 var FINISH_NODE_COL = -1;
+var TIME_INTERVAL = 25;
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -18,6 +19,7 @@ export default class PathfindingVisualizer extends Component {
       grid: [],
       isPlaceStart: false,
       isPlaceEnd: false,
+      isPlaceWeight: false,
       startPresent: false,
       endPresent: false,
       isMousePressed: false,
@@ -25,7 +27,7 @@ export default class PathfindingVisualizer extends Component {
   }
   componentDidMount() {
     const grid = getInitialGrid();
-    this.setState({ grid });
+    this.setState({ grid: grid });
   }
   placeStartNode() {
     this.setState({ isPlaceStart: true });
@@ -33,17 +35,20 @@ export default class PathfindingVisualizer extends Component {
   placeEndNode() {
     this.setState({ isPlaceEnd: true });
   }
+  placeWeightNode() {
+    this.setState({ isPlaceWeight: true });
+  }
 
   handleMouseClick(row, col) {
     console.log("A cell is clicked")
-    const { isPlaceStart, isPlaceEnd, endPresent, startPresent, isMousePressed } = this.state;
+    const { isPlaceStart, isPlaceEnd, endPresent, startPresent, isMousePressed, isPlaceWeight } = this.state;
     let newGrid = null;
     if (isMousePressed) {
       console.log("Back to normal state");
       this.setState({ isMousePressed: false });
       return;
     }
-    else if (!isPlaceStart && !isPlaceEnd) {
+    else if (!isPlaceStart && !isPlaceEnd && !isPlaceWeight) {
       console.log("Placing wall node");
       newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
       this.setState({ isMousePressed: true });
@@ -82,6 +87,9 @@ export default class PathfindingVisualizer extends Component {
         this.setState({ endPresent: true });
       }
     }
+    else if (isPlaceWeight) {
+      newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
+    }
 
     if (newGrid === null) {
       console.log("Error in handling mouse click");
@@ -91,7 +99,7 @@ export default class PathfindingVisualizer extends Component {
   }
 
   handleMouseEnter(row, col) {
-    const { isPlaceStart, isPlaceEnd, isMousePressed, startPresent, endPresent } = this.state;
+    const { isPlaceStart, isPlaceEnd, isMousePressed, isPlaceWeight, startPresent, endPresent } = this.state;
     if (isPlaceEnd || isPlaceStart) {
       console.log("Placing start or end node.Cant drag");
       return;
@@ -108,6 +116,11 @@ export default class PathfindingVisualizer extends Component {
       console.log("end present on that cell.cant place wall")
       return;
     }
+    if (isPlaceWeight) {
+      const newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid });
+      return;
+    }
     const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
     this.setState({ grid: newGrid });
   }
@@ -120,10 +133,19 @@ export default class PathfindingVisualizer extends Component {
         document.getElementById(`node-${row}-${col}`).className = 'node';
       }
     }
+    this.enableExceptClearboard();
+    START_NODE_ROW = -1;
+    START_NODE_COL = -1;
+    FINISH_NODE_ROW = -1;
+    FINISH_NODE_COL = -1;
+  }
+
+  getPrevBoard() {
+    console.log("TODO: Implement use previous board function");
   }
 
   handleAlgorithmsDropdown() {
-    let algorithmsContainer = document.getElementById("dropdown-container").style;
+    let algorithmsContainer = document.getElementsByClassName("dropdown-container")[0].style;
     if (algorithmsContainer.display === "block") {
       algorithmsContainer.display = "none";
     }
@@ -149,6 +171,66 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
+  // Util functions
+  disableExceptClearboard() {
+    // Disable start & end node
+    const startNode = document.getElementById("start_node");
+    startNode.disabled = true;
+    startNode.style.background = "white";
+    const endNode = document.getElementById("end_node");
+    endNode.disabled = true;
+    endNode.style.background = "white";
+
+    // Disable all algorithms buttons
+    document.getElementsByClassName("dropdown-btn")[0].style.background = "white";
+    const visualizeButtons = document.getElementsByClassName("visualize");
+    for (const button of visualizeButtons) {
+      button.disabled = true;
+    }
+
+    // Disable internal algorithm button
+    document.getElementById("bfs_d").disabled = true;
+    document.getElementById("bfs_nd").disabled = true;
+    document.getElementById("dfs_d").disabled = true;
+    document.getElementById("dfs_nd").disabled = true;
+    document.getElementById("dijkstra_d").disabled = true;
+    document.getElementById("dijkstra_nd").disabled = true;
+    document.getElementById("astar_d").disabled = true;
+    document.getElementById("astar_nd").disabled = true;
+
+    // Disable clear button
+    document.getElementById("clear").disabled = true;
+  }
+  enableExceptClearboard() {
+    // Enable start & end node
+    const startNode = document.getElementById("start_node");
+    startNode.disabled = false;
+    startNode.style.background = "#111";
+    const endNode = document.getElementById("end_node");
+    endNode.disabled = false;
+    endNode.style.background = "#111";
+
+    // Enable all algorithms buttons
+    document.getElementsByClassName("dropdown-btn")[0].style.background = "#111";
+    const visualizeButtons = document.getElementsByClassName("visualize");
+    for (const button of visualizeButtons) {
+      button.disabled = false;
+    }
+
+    // Disable internal algorithm button
+    document.getElementById("bfs_d").disabled = false;
+    document.getElementById("bfs_nd").disabled = false;
+    document.getElementById("dfs_d").disabled = false;
+    document.getElementById("dfs_nd").disabled = false;
+    document.getElementById("dijkstra_d").disabled = false;
+    document.getElementById("dijkstra_nd").disabled = false;
+    document.getElementById("astar_d").disabled = false;
+    document.getElementById("astar_nd").disabled = false;
+
+    // Enable clear button
+    document.getElementById("clear").disabled = false;
+  }
+
   render() {
     const { grid } = this.state;
 
@@ -157,30 +239,28 @@ export default class PathfindingVisualizer extends Component {
         <div className="sidenav">
           <button id="start_node" onClick={() => this.placeStartNode()}>Start Node</button>
           <button id="end_node" onClick={() => this.placeEndNode()}>End Node</button>
+          <button id="weight_node" onClick={() => this.placeWeightNode()}>Weight Node</button>
           <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown()}>Algorithms<i className="fa fa-caret-down"></i></button>
           <div className="dropdown-container" id="dropdown-container">
-            <button onClick={() => this.handleEachAlgorithmDropdown("bfs")}>
-              Visualize BFS Algorithm
-              <button id="bfs_d" onClick={() => this.visualizeBFS(true)} >Diagonal Movement Allowed</button>
-              <button id="bfs_nd" onClick={() => this.visualizeBFS(false)} >No Diagonal Movement Allowed</button>
-            </button>
-            <button onClick={() => this.handleEachAlgorithmDropdown("dfs")}>
-              Visualize DFS Algorithm
-              <button id="dfs_d" onClick={() => this.visualizeDFS(true)} >Diagonal Movement Allowed</button>
-              <button id="dfs_nd" onClick={() => this.visualizeDFS(false)} >No Diagonal Movement Allowed</button>
-            </button>
-            <button onClick={() => this.handleEachAlgorithmDropdown("dijkstra")}>
-              Visualize Dijkstra's Algorithm
-              <button id="dijkstra_d" onClick={() => this.visualizeDijkstra(true)} >Diagonal Movement Allowed</button>
-              <button id="dijkstra_nd" onClick={() => this.visualizeDijkstra(false)} >No Diagonal Movement Allowed</button>
-            </button>
-            <button onClick={() => this.handleEachAlgorithmDropdown("astar")}>
-              Visualize A* Search Algorithm
-              <button id="astar_d" onClick={() => this.visualizeAStar(true)} >Diagonal Movement Allowed</button>
-              <button id="astar_nd" onClick={() => this.visualizeAStar(false)} >No Diagonal Movement Allowed</button>
-            </button>
+            {/* BFS */}
+            <button className="visualize" onClick={() => this.handleEachAlgorithmDropdown("bfs")}>Visualize BFS Algorithm</button>
+            <button id="bfs_d" onClick={() => this.visualizeBFS(true)} >Diagonal Movement Allowed</button>
+            <button id="bfs_nd" onClick={() => this.visualizeBFS(false)} >No Diagonal Movement Allowed</button>
+            {/* DFS */}
+            <button className="visualize" onClick={() => this.handleEachAlgorithmDropdown("dfs")}>Visualize DFS Algorithm</button>
+            <button id="dfs_d" onClick={() => this.visualizeDFS(true)} >Diagonal Movement Allowed</button>
+            <button id="dfs_nd" onClick={() => this.visualizeDFS(false)} >No Diagonal Movement Allowed</button>
+            {/* Dijkstra's */}
+            <button className="visualize" onClick={() => this.handleEachAlgorithmDropdown("dijkstra")}>Visualize Dijkstra's Algorithm</button>
+            <button id="dijkstra_d" onClick={() => this.visualizeDijkstra(true)} >Diagonal Movement Allowed</button>
+            <button id="dijkstra_nd" onClick={() => this.visualizeDijkstra(false)} >No Diagonal Movement Allowed</button>
+            {/* A* Search */}
+            <button className="visualize" onClick={() => this.handleEachAlgorithmDropdown("astar")}>Visualize A* Search Algorithm</button>
+            <button id="astar_d" onClick={() => this.visualizeAStar(true)} >Diagonal Movement Allowed</button>
+            <button id="astar_nd" onClick={() => this.visualizeAStar(false)} >No Diagonal Movement Allowed</button>
           </div>
           <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
+          <button id="prevGrid" onClick={() => this.getPrevBoard()}>Use Previous Board</button>
         </div>
 
 
@@ -191,7 +271,7 @@ export default class PathfindingVisualizer extends Component {
             return (
               <div key={rowIdx}>
                 {row.map((node, nodeIdx) => {
-                  const { row, col, isEnd, isStart, isWall } = node;
+                  const { row, col, isEnd, isStart, isWall, isWeight } = node;
                   return (
                     <Node
                       key={nodeIdx}
@@ -199,6 +279,7 @@ export default class PathfindingVisualizer extends Component {
                       isEnd={isEnd}
                       isStart={isStart}
                       isWall={isWall}
+                      isWeight={isWeight}
                       onMouseClick={(row, col) => this.handleMouseClick(row, col)}
                       onMouseEnter={(row, col) => this.handleMouseEnter(row, col)}
                       row={row}></Node>
@@ -214,6 +295,14 @@ export default class PathfindingVisualizer extends Component {
 
   // Pathfinding Algorithms Helper FUnctions
   visualizeDijkstra(diagonal) {
+    if (START_NODE_ROW == -1 || START_NODE_COL == -1) {
+      alert("start node isn't selected");
+      return;
+    }
+    if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
+      alert("end node isn't selected");
+    }
+    this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
@@ -224,16 +313,32 @@ export default class PathfindingVisualizer extends Component {
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeBFS(diagonal) {
+    if (START_NODE_ROW == -1 || START_NODE_COL == -1) {
+      alert("start node isn't selected");
+      return;
+    }
+    if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
+      alert("end node isn't selected");
+    }
+    this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    const visitedNodesInOrder = bfs(grid, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode, diagonal);
+    const visitedNodesInOrder = bfs(grid, startNode, finishNode, diagonal);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeDFS(diagonal) {
+    if (START_NODE_ROW == -1 || START_NODE_COL == -1) {
+      alert("start node isn't selected");
+      return;
+    }
+    if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
+      alert("end node isn't selected");
+    }
+    this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
@@ -244,11 +349,13 @@ export default class PathfindingVisualizer extends Component {
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
-    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
-      if (i === visitedNodesInOrder.length) {
+    for (let i = 1; i <= visitedNodesInOrder.length - 1; i++) {
+      if (i === visitedNodesInOrder.length - 1) {
         setTimeout(() => {
           this.animateShortestPath(nodesInShortestPathOrder);
-        }, 25 * i);
+          // Enable clear button
+          document.getElementById("clear").disabled = false;
+        }, TIME_INTERVAL * i);
         return;
       }
       setTimeout(() => {
@@ -256,7 +363,7 @@ export default class PathfindingVisualizer extends Component {
         if (node === startNode || node === finishNode) return;
         document.getElementById(`node-${node.row}-${node.col}`).className =
           'node node-visited';
-      }, 25 * i);
+      }, TIME_INTERVAL * i);
     }
   }
 
@@ -265,15 +372,25 @@ export default class PathfindingVisualizer extends Component {
     if (!(firstNodeInShortestPath.row === START_NODE_ROW && firstNodeInShortestPath.col === START_NODE_COL)) {
       setTimeout(() => {
         alert("No Shortest Path");
-      }, 25)
+      }, TIME_INTERVAL)
       return;
     }
-    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
+    const node = nodesInShortestPathOrder[0];
+    document.getElementById(`node-${node.row}-${node.col}`).className =
+      'node node-shortest-path node-start';
+
+    for (let i = 1; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          'node node-shortest-path';
-      }, 100 * i);
+        if (i == nodesInShortestPathOrder.length - 1) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-shortest-path node-finish';
+        }
+        else {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-shortest-path';
+        }
+      }, 2 * TIME_INTERVAL * i);
     }
   }
 }
@@ -299,6 +416,7 @@ const createNode = (col, row) => {
     distance: Infinity,
     isVisited: false,
     isWall: false,
+    isWeight: false,
     previousNode: null,
   };
 };
@@ -338,3 +456,14 @@ const getNewGridWithEndToggled = (grid, row, col) => {
   newGrid[row][col] = newNode;
   return newGrid;
 };
+
+const getNewGridWithWeightToggled = (grid, row, col) => {
+  const newGrid = grid.slice();
+  const node = newGrid[row][col];
+  const newNode = {
+    ...node,
+    isWeight: !node.isWeight,
+  };
+  newGrid[row][col] = newNode;
+  return newGrid;
+}

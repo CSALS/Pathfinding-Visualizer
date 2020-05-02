@@ -9,11 +9,12 @@ export default class Node extends Component {
       isEnd,
       isStart,
       isWall,
+      isWeight,
       onMouseClick,
       onMouseEnter,
     } = this.props;
 
-    const extraClassName = isEnd ? 'node-finish' : isStart ? 'node-start' : isWall ? 'node-wall' : '';
+    const extraClassName = isEnd ? 'node-finish' : isStart ? 'node-start' : isWall ? 'node-wall' : isWeight ? 'node-weight' : '';
 
     return (
       <div

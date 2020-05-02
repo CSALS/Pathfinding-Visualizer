@@ -17,12 +17,13 @@ MAZE GENERATIONS
 - Maze Division Algo = https://stackoverflow.com/questions/41553775/maze-generation-recursive-division-how-it-works
 
 **Frontend side**
+- Add same functionality for weight node just like wall node
+- And also add wall node button
 - Add use same board button which when clicked displays same board used before an algorithm is visualized
-- Update grid size responsively
-- Handle edge cases when start node, end node aren't defined
+- Update grid size responsively (Help Needed)
 
 
-## Adding new algorithm
+## How to add new algorithm?
 1. Write the algorithm in algorithms folder and export the function which returns visitedNodesInOrder array
 2. Inside PathfindingVisualizer.jsx
             -> 'sidenav' div

@@ -12,10 +12,19 @@
   background-color: rgb(12, 53, 71);
 }
 .node-finish {
-  background-color: red;
+  background-image:url('../../assets/end.svg');
+  background-repeat:no-repeat;
+  background-size:cover;
 }
 .node-start {
-  background-color: green;
+  background-image:url('../../assets/start.svg');
+  background-repeat:no-repeat;
+  background-size:cover;
+}
+.node-weight {
+  background-image:url('../../assets/weight.svg');
+  background-repeat:no-repeat;
+  background-size:cover;
 }
 /* The styling for animating nodes in the order they are visited */
 .node-visited {

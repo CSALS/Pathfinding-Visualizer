@@ -67,6 +67,7 @@ body {
 
 #bfs_d, #bfs_nd, #dfs_d, #dfs_nd, #dijkstra_d, #dijkstra_nd, #astar_d, #astar_nd{
   font-size:15px;
+  margin-left:15px;
   display: none;
 }
 
@@ -81,4 +82,3 @@ body {
   .sidenav {padding-top: 15px;}
   .sidenav button {font-size: 18px;}
 }
-
