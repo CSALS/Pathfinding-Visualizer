@@ -5,6 +5,7 @@
 
 ### TODO
 **Algorithms side**
+- Maybe generate random grid with walls & weights?
 UNINFORMED SEARCH
 - Iterative Deepening Search
 - Bidirectional Search
@@ -17,8 +18,6 @@ MAZE GENERATIONS
 - Maze Division Algo = https://stackoverflow.com/questions/41553775/maze-generation-recursive-division-how-it-works
 
 **Frontend side**
-- Add same functionality for weight node just like wall node
-- And also add wall node button
 - Add use same board button which when clicked displays same board used before an algorithm is visualized
 - Update grid size responsively (Help Needed)
 

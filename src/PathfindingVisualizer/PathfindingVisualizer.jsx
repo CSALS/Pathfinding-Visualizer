@@ -20,6 +20,7 @@ export default class PathfindingVisualizer extends Component {
       isPlaceStart: false,
       isPlaceEnd: false,
       isPlaceWeight: false,
+      isPlaceWall: false,
       startPresent: false,
       endPresent: false,
       isMousePressed: false,
@@ -35,22 +36,29 @@ export default class PathfindingVisualizer extends Component {
   placeEndNode() {
     this.setState({ isPlaceEnd: true });
   }
+  placeWallNode() {
+    this.setState({ isPlaceWall: true });
+  }
   placeWeightNode() {
     this.setState({ isPlaceWeight: true });
   }
 
   handleMouseClick(row, col) {
     console.log("A cell is clicked")
-    const { isPlaceStart, isPlaceEnd, endPresent, startPresent, isMousePressed, isPlaceWeight } = this.state;
+    const { isPlaceStart, isPlaceEnd, endPresent, startPresent, isMousePressed, isPlaceWeight, isPlaceWall } = this.state;
     let newGrid = null;
     if (isMousePressed) {
       console.log("Back to normal state");
-      this.setState({ isMousePressed: false });
+      this.setState({ isMousePressed: false, isPlaceWall: false, isPlaceWeight: false });
       return;
     }
-    else if (!isPlaceStart && !isPlaceEnd && !isPlaceWeight) {
+    else if (isPlaceWall) {
       console.log("Placing wall node");
       newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ isMousePressed: true });
+    }
+    else if (isPlaceWeight) {
+      newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
       this.setState({ isMousePressed: true });
     }
     else if (isPlaceStart) {
@@ -87,9 +95,6 @@ export default class PathfindingVisualizer extends Component {
         this.setState({ endPresent: true });
       }
     }
-    else if (isPlaceWeight) {
-      newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
-    }
 
     if (newGrid === null) {
       console.log("Error in handling mouse click");
@@ -99,7 +104,7 @@ export default class PathfindingVisualizer extends Component {
   }
 
   handleMouseEnter(row, col) {
-    const { isPlaceStart, isPlaceEnd, isMousePressed, isPlaceWeight, startPresent, endPresent } = this.state;
+    const { isPlaceStart, isPlaceEnd, isMousePressed, isPlaceWeight, isPlaceWall, startPresent, endPresent } = this.state;
     if (isPlaceEnd || isPlaceStart) {
       console.log("Placing start or end node.Cant drag");
       return;
@@ -116,13 +121,15 @@ export default class PathfindingVisualizer extends Component {
       console.log("end present on that cell.cant place wall")
       return;
     }
-    if (isPlaceWeight) {
-      const newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
+    let newGrid = null;
+    if (isPlaceWall) {
+      newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
       this.setState({ grid: newGrid });
-      return;
     }
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid });
+    else if (isPlaceWeight) {
+      newGrid = getNewGridWithWeightToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid });
+    }
   }
 
   clearBoard() {
@@ -239,6 +246,7 @@ export default class PathfindingVisualizer extends Component {
         <div className="sidenav">
           <button id="start_node" onClick={() => this.placeStartNode()}>Start Node</button>
           <button id="end_node" onClick={() => this.placeEndNode()}>End Node</button>
+          <button id="wall_node" onClick={() => this.placeWallNode()}>Wall Node</button>
           <button id="weight_node" onClick={() => this.placeWeightNode()}>Weight Node</button>
           <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown()}>Algorithms<i className="fa fa-caret-down"></i></button>
           <div className="dropdown-container" id="dropdown-container">
@@ -264,7 +272,7 @@ export default class PathfindingVisualizer extends Component {
         </div>
 
 
-        <div className="main info">This is where info about algorithm is displayed</div>
+        <div className="main info"></div>
 
         <div className="grid main">
           {grid.map((row, rowIdx) => {
@@ -302,6 +310,8 @@ export default class PathfindingVisualizer extends Component {
     if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
       alert("end node isn't selected");
     }
+    document.getElementsByClassName("info")[0].innerHTML =
+      "Dijkstra's Algorithm is <strong>weighted</strong> algorithm and <strong>guarentees</strong> shortest path";
     this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
@@ -320,6 +330,8 @@ export default class PathfindingVisualizer extends Component {
     if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
       alert("end node isn't selected");
     }
+    document.getElementsByClassName("info")[0].innerHTML =
+      "Breadth First Search Algorithm is <strong>unweighted</strong> algorithm and <strong>guarentees</strong> shortest path";
     this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
@@ -338,6 +350,8 @@ export default class PathfindingVisualizer extends Component {
     if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
       alert("end node isn't selected");
     }
+    document.getElementsByClassName("info")[0].innerHTML =
+      "Depth First Search Algorithm is <strong>unweighted</strong> algorithm and <strong>doesn't</strong> guarentees shortest path";
     this.disableExceptClearboard();
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
