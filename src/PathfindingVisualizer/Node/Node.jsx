@@ -10,6 +10,7 @@ export default class Node extends Component {
       isStart,
       isWall,
       onMouseClick,
+      onMouseEnter,
     } = this.props;
 
     const extraClassName = isEnd ? 'node-finish' : isStart ? 'node-start' : isWall ? 'node-wall' : '';
@@ -19,6 +20,7 @@ export default class Node extends Component {
         id={`node-${row}-${col}`}
         className={`node ${extraClassName}`}
         onClick={() => onMouseClick(row, col)}
+        onMouseEnter={() => onMouseEnter(row, col)}
       >
       </div>
     );

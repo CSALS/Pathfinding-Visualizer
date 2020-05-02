@@ -35,9 +35,11 @@ export function dijkstra(grid, startNode, finishNode) {
       const new_y = col + side_nodes_y[i];
       if (!(new_x >= 0 && new_y >= 0 && new_x < grid.length && new_y < grid[0].length)) continue;
       const neighbor = grid[new_x][new_y];
-      if (neighbor.isVisited == true) continue;
-      neighbor.distance = closestNode.distance + 1;
-      neighbor.previousNode = closestNode;
+      if (neighbor.isVisited == true || neighbor.isWall == true) continue;
+      if (closestNode.distance + 1 < neighbor.distance) {
+        neighbor.distance = closestNode.distance + 1;
+        neighbor.previousNode = closestNode;
+      }
     }
 
     const diagonal_nodes_x = [1, 1, -1, -1];
@@ -49,12 +51,13 @@ export function dijkstra(grid, startNode, finishNode) {
       const new_y = col + diagonal_nodes_y[i];
       if (!(new_x >= 0 && new_y >= 0 && new_x < grid.length && new_y < grid[0].length)) continue;
       const neighbor = grid[new_x][new_y];
-      if (neighbor.isVisited == true) continue;
-      neighbor.distance = closestNode.distance + 1.2;
-      neighbor.previousNode = closestNode;
+      if (neighbor.isVisited == true || neighbor.isWall == true) continue;
+      if (closestNode.distance + 1.2 < neighbor.distance) {
+        neighbor.distance = closestNode.distance + 1.2;
+        neighbor.previousNode = closestNode;
+      }
     }
   }
-
 }
 
 function getAllNodes(grid) {
@@ -81,11 +84,18 @@ function getClosestUnvisitedNode(allNodes) {
   console.log(closestNode);
   return closestNode;
 }
-// unvisitedNodes.reduce(function (nodeA, nodeB) {
-//   return nodeA.distance < nodeB.distance ? nodeA : nodeB;
-// });
 
-
+// Backtracks from the finishNode to find the shortest path.
+// Only works when called *after* the dijkstra method above.
+export function getNodesInShortestPathOrder(finishNode) {
+  const nodesInShortestPathOrder = [];
+  let currentNode = finishNode;
+  while (currentNode !== null) {
+    nodesInShortestPathOrder.unshift(currentNode);
+    currentNode = currentNode.previousNode;
+  }
+  return nodesInShortestPathOrder;
+}
 
 
 
@@ -150,14 +160,4 @@ function getClosestUnvisitedNode(allNodes) {
 //   return nodes;
 // }
 
-// // Backtracks from the finishNode to find the shortest path.
-// // Only works when called *after* the dijkstra method above.
-export function getNodesInShortestPathOrder(finishNode) {
-  const nodesInShortestPathOrder = [];
-  let currentNode = finishNode;
-  while (currentNode !== null) {
-    nodesInShortestPathOrder.unshift(currentNode);
-    currentNode = currentNode.previousNode;
-  }
-  return nodesInShortestPathOrder;
-}
+

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Node from './Node/Node';
 import { dijkstra, getNodesInShortestPathOrder } from '../algorithms/dijkstra';
+import { bfs } from '../algorithms/bfs';
+import { dfs } from '../algorithms/dfs';
 
 import './PathfindingVisualizer.css';
 
@@ -18,6 +20,7 @@ export default class PathfindingVisualizer extends Component {
       isPlaceEnd: false,
       startPresent: false,
       endPresent: false,
+      isMousePressed: false,
     };
   }
   componentDidMount() {
@@ -33,10 +36,18 @@ export default class PathfindingVisualizer extends Component {
 
   handleMouseClick(row, col) {
     console.log("A cell is clicked")
-    const { isPlaceStart, isPlaceEnd, endPresent, startPresent } = this.state;
+    const { isPlaceStart, isPlaceEnd, endPresent, startPresent, isMousePressed } = this.state;
     let newGrid = null;
-    if (!isPlaceStart && !isPlaceEnd)
+    if (isMousePressed) {
+      console.log("Back to normal state");
+      this.setState({ isMousePressed: false });
+      return;
+    }
+    else if (!isPlaceStart && !isPlaceEnd) {
+      console.log("Placing wall node");
       newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ isMousePressed: true });
+    }
     else if (isPlaceStart) {
       const isSameNode = (row == START_NODE_ROW && col == START_NODE_COL)
       if (!isSameNode && startPresent) {
@@ -77,6 +88,28 @@ export default class PathfindingVisualizer extends Component {
       return;
     }
     this.setState({ grid: newGrid, isPlaceStart: false, isPlaceEnd: false });
+  }
+
+  handleMouseEnter(row, col) {
+    const { isPlaceStart, isPlaceEnd, isMousePressed, startPresent, endPresent } = this.state;
+    if (isPlaceEnd || isPlaceStart) {
+      console.log("Placing start or end node.Cant drag");
+      return;
+    }
+    if (!isMousePressed) {
+      console.log("Mouse is not being dragged");
+      return;
+    }
+    if (startPresent && row == START_NODE_ROW && col == START_NODE_COL) {
+      console.log("start present on that cell.cant place wall")
+      return;
+    }
+    if (endPresent && row == FINISH_NODE_ROW && col == FINISH_NODE_COL) {
+      console.log("end present on that cell.cant place wall")
+      return;
+    }
+    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+    this.setState({ grid: newGrid });
   }
 
   clearBoard() {
@@ -130,6 +163,7 @@ export default class PathfindingVisualizer extends Component {
                       isStart={isStart}
                       isWall={isWall}
                       onMouseClick={(row, col) => this.handleMouseClick(row, col)}
+                      onMouseEnter={(row, col) => this.handleMouseEnter(row, col)}
                       row={row}></Node>
                   );
                 })}
@@ -148,43 +182,59 @@ export default class PathfindingVisualizer extends Component {
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    console.log(visitedNodesInOrder);
+    // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
-    // this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
+    this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeBFS() {
     const { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    // const visitedNodesInOrder = bfs(grid, startNode, finishNode);
-    // const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    const visitedNodesInOrder = bfs(grid, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
     // console.log(nodesInShortestPathOrder);
-    // this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
+    this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
-  animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+  visualizeDFS() {
+    const { grid } = this.state;
+    const startNode = grid[START_NODE_ROW][START_NODE_COL];
+    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    const visitedNodesInOrder = dfs(grid, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    // console.log(visitedNodesInOrder);
+    // console.log(nodesInShortestPathOrder);
+    this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
+  }
+  animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
           this.animateShortestPath(nodesInShortestPathOrder);
-        }, 50 * i);
+        }, 25 * i);
         return;
       }
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
+        if (node === startNode || node === finishNode) return;
         document.getElementById(`node-${node.row}-${node.col}`).className =
           'node node-visited';
-      }, 50 * i);
+      }, 25 * i);
     }
   }
 
   animateShortestPath(nodesInShortestPathOrder) {
+    const firstNodeInShortestPath = nodesInShortestPathOrder[nodesInShortestPathOrder.length - 1];
+    if (!(firstNodeInShortestPath.row === START_NODE_ROW && firstNodeInShortestPath.col === START_NODE_COL)) {
+      alert("No Shortest Path");
+      return;
+    }
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
         const node = nodesInShortestPathOrder[i];
         document.getElementById(`node-${node.row}-${node.col}`).className =
           'node node-shortest-path';
-      }, 50 * i);
+      }, 100 * i);
     }
   }
 }
