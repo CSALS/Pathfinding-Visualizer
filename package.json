@@ -7,7 +7,7 @@
     "react-dom": "^16.10.1",
     "react-scripts": "3.1.2"
   },
-  "homepage": "http://CSALS.github.io/Sorting-Visualizer",
+  "homepage": "http://CSALS.github.io/Pathfinding-Visualizer",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
