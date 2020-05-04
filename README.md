@@ -15,12 +15,16 @@ INFORMED SEARCH (heuristics)
 - RBFS (recursive best-first search)
 - SMA* (simplified memory-bounded A*)
 MAZE GENERATIONS
+- Randomized DFS = http://www.migapro.com/depth-first-search/
 - Maze Division Algo = https://stackoverflow.com/questions/41553775/maze-generation-recursive-division-how-it-works
 
 **Frontend side**
 - Add use same board button which when clicked displays same board used before an algorithm is visualized
 - Update grid size responsively (Help Needed)
 
+
+## Deploy to github pages
+- https://blog.usejournal.com/how-to-deploy-your-react-app-into-github-pages-b2c96292b18e
 
 ## How to add new algorithm?
 1. Write the algorithm in algorithms folder and export the function which returns visitedNodesInOrder array

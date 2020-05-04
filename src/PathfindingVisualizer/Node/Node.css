@@ -2,14 +2,14 @@
 .node {
   width: 25px;
   height: 25px;
-  outline: 1px solid rgb(148, 145, 145);
+  outline: 1px solid #808080;
   display: inline-block;
 }
 /* ADDITIONAL CLASSES For Nodes ======== */
 
 /* These are the styling which change colors of wall, start and finish */
 .node-wall {
-  background-color: rgb(12, 53, 71);
+  background-color: black;
 }
 .node-finish {
   background-image:url('../../assets/end.svg');
