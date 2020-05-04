@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import Node from './Node/Node';
-import { dijkstra, getNodesInShortestPathOrder } from '../algorithms/dijkstra';
-import { bfs } from '../algorithms/bfs';
-import { dfs } from '../algorithms/dfs';
+import { dijkstra, getNodesInShortestPathOrder } from '../PathfindingAlgorithms/dijkstra';
+import { bfs } from '../PathfindingAlgorithms/bfs';
+import { dfs } from '../PathfindingAlgorithms/dfs';
+import { dfsMaze } from '../MazeAlgorithms/dfsMaze';
 
 import './PathfindingVisualizer.css';
 
@@ -11,6 +12,8 @@ var START_NODE_COL = -1;
 var FINISH_NODE_ROW = -1;
 var FINISH_NODE_COL = -1;
 var TIME_INTERVAL = 25;
+var HEIGHT = 20;
+var WIDTH = 50;
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -134,12 +137,20 @@ export default class PathfindingVisualizer extends Component {
 
   clearBoard() {
     const grid = getInitialGrid();
-    this.setState({ grid: grid, isPlaceStart: false, isPlaceEnd: false, startPresent: false, endPresent: false });
     for (let row = 0; row < grid.length; ++row) {
       for (let col = 0; col < grid[0].length; ++col) {
         document.getElementById(`node-${row}-${col}`).className = 'node';
       }
     }
+    this.setState({
+      grid: grid, isPlaceStart: false,
+      isPlaceEnd: false,
+      isPlaceWeight: false,
+      isPlaceWall: false,
+      startPresent: false,
+      endPresent: false,
+      isMousePressed: false,
+    });
     this.enableExceptClearboard();
     START_NODE_ROW = -1;
     START_NODE_COL = -1;
@@ -151,62 +162,7 @@ export default class PathfindingVisualizer extends Component {
     console.log("TODO: Implement use previous board function");
   }
 
-  dfs1(grid, x, y) {
-    const node = grid[x][y];
-    node.isVisited = true;
-    node.isWall = true;
-    const array = [0, 1, 2, 3];
-    for (let i = array.length - 1; i > 0; i--) {
-      let rand = Math.floor(Math.random() * (i + 1));
-      [array[i], array[rand]] = [array[rand], array[i]]
-    }
-    console.log(array)
-    const side_nodes_x1 = [0, 0, 1, -1];
-    const side_nodes_y1 = [1, -1, 0, 0];
-    const side_nodes_x2 = [0, 0, 2, -2];
-    const side_nodes_y2 = [2, -2, 0, 0];
-    for (let k = 0; k < array.length; ++k) {
-      const i = array[k];
-      const { col, row } = node;
-      const new_x2 = row + side_nodes_x2[i];
-      const new_y2 = col + side_nodes_y2[i];
-      if (!(new_x2 >= 0 && new_y2 >= 0 && new_x2 < grid.length && new_y2 < grid[0].length)) continue;
-      const neighbor = grid[new_x2][new_y2];
-      if (neighbor.isVisited === true || neighbor.isWall === true) continue;
-      const new_x1 = row + side_nodes_x1[i];
-      const new_y1 = col + side_nodes_y1[i];
-      if ((new_x1 >= 0 && new_y1 >= 0 && new_x1 < grid.length && new_y1 < grid[0].length)) {
-        grid[new_x1][new_y1].isWall = true;
-      }
-      this.dfs1(grid, new_x2, new_y2);
-    }
-  }
-  genRandomBoard() {
-    //20*50 board
-    const { grid } = this.state;
-    for (const row of grid) {
-      for (const node of row) {
-        node.isWall = false;
-        node.isVisited = false;
-      }
-    }
-    let start_x = getRandomInteger(0, 20);
-    let start_y = getRandomInteger(0, 50);
-    while (start_x % 2 != 0) {
-      start_x = getRandomInteger(0, 20);
-    }
-    while (start_y % 2 != 0) {
-      start_y = getRandomInteger(0, 50);
-    }
-    console.log(start_x, start_y);
-    this.dfs1(grid, start_x, start_y);
-    for (const row of grid) {
-      for (const node of row) {
-        node.isVisited = !node.isVisited;
-      }
-    }
-    this.setState({ grid });
-  }
+
 
   handleAlgorithmsDropdown() {
     let algorithmsContainer = document.getElementsByClassName("dropdown-container")[0].style;
@@ -360,7 +316,9 @@ export default class PathfindingVisualizer extends Component {
   }
 
   // Pathfinding Algorithms Helper FUnctions
-  refreshBoard(currGrid) {
+  refreshBoardForPathfinding(currGrid) {
+    // Defaults visited & distance of each node. Need this before
+    // running the pathfinding algorithms
     const grid = currGrid.slice();
     for (const row of grid) {
       for (const node of row) {
@@ -384,7 +342,7 @@ export default class PathfindingVisualizer extends Component {
     let { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    grid = this.refreshBoard(grid);
+    grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
@@ -405,7 +363,7 @@ export default class PathfindingVisualizer extends Component {
     let { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    grid = this.refreshBoard(grid);
+    grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = bfs(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
@@ -426,7 +384,7 @@ export default class PathfindingVisualizer extends Component {
     let { grid } = this.state;
     const startNode = grid[START_NODE_ROW][START_NODE_COL];
     const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-    grid = this.refreshBoard(grid);
+    grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = dfs(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     // console.log(visitedNodesInOrder);
@@ -478,13 +436,50 @@ export default class PathfindingVisualizer extends Component {
       }, 2 * TIME_INTERVAL * i);
     }
   }
+
+  refreshBoardForMaze(currGrid) {
+    let grid = currGrid.slice();
+    for (const row of grid) {
+      for (const node of row) {
+        node.isVisited = false;
+        node.isWall = false;
+      }
+    }
+    return grid;
+  }
+
+
+  genRandomBoard() {
+    // this.clearBoard();
+    //21*51 board
+    let { grid } = this.state;
+    grid = this.refreshBoardForMaze(grid);
+    let start_x = getRandomInteger(0, HEIGHT);
+    let start_y = getRandomInteger(0, WIDTH);
+    while (start_x % 2 != 0) {
+      start_x = getRandomInteger(0, HEIGHT);
+    }
+    while (start_y % 2 != 0) {
+      start_y = getRandomInteger(0, WIDTH);
+    }
+    const visitedNodesInOrder = dfsMaze(grid, start_x, start_y);
+    grid = this.refreshBoardForMaze(grid);
+    for (let i = 0; i < visitedNodesInOrder.length; ++i) {
+      setTimeout(() => {
+        const node = visitedNodesInOrder[i];
+        node.isWall = true;
+        this.setState({ grid });
+      }, 0);
+    }
+    this.setState({ grid });
+  }
 }
 
 const getInitialGrid = () => {
   const grid = [];
-  for (let row = 0; row < 21; row++) {
+  for (let row = 0; row <= HEIGHT; row++) {
     const currentRow = [];
-    for (let col = 0; col < 51; col++) {
+    for (let col = 0; col <= WIDTH; col++) {
       currentRow.push(createNode(col, row));
     }
     grid.push(currentRow);
