@@ -259,8 +259,8 @@ export default class PathfindingVisualizer extends Component {
         <div className="sidenav">
           <button id="start_node" onClick={() => this.placeStartNode()}>Start Node</button>
           <button id="end_node" onClick={() => this.placeEndNode()}>End Node</button>
-          <button id="wall_node" onClick={() => this.placeWallNode()}>Wall Node</button>
-          <button id="weight_node" onClick={() => this.placeWeightNode()}>Weight Node</button>
+          <button id="wall_node" onClick={() => this.placeWallNode()} title="Click on any cell and then keep moving to create walls. Click again to stop">Wall Node</button>
+          <button id="weight_node" onClick={() => this.placeWeightNode()} title="Click on any cell and then keep moving to create weights. Click again to stop">Weight Node</button>
           <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown()}>Algorithms<i className="fa fa-caret-down"></i></button>
           <div className="dropdown-container" id="dropdown-container">
             {/* BFS */}
@@ -286,7 +286,10 @@ export default class PathfindingVisualizer extends Component {
         </div>
 
 
-        <div className="main info"></div>
+        <div className="main info">
+          Adding WALL on cell makes it <strong>impenetrable</strong> <br></br>
+          Adding WEIGHT on cell <strong>increases</strong> the cost to pass throught it. Here the cost is doubled
+        </div>
 
         <div className="grid main">
           {grid.map((row, rowIdx) => {
