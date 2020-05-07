@@ -8,13 +8,29 @@ import { dfsMaze } from '../MazeAlgorithms/dfsMaze';
 
 import './PathfindingVisualizer.css';
 
+const getRandomInteger = (min, max) => {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// Parameters
+var TIME_INTERVAL = 25;
+var HEIGHT = 20;
+var WIDTH = 50;
 var START_NODE_ROW = -1;
 var START_NODE_COL = -1;
 var FINISH_NODE_ROW = -1;
 var FINISH_NODE_COL = -1;
-var TIME_INTERVAL = 25;
-var HEIGHT = 20;
-var WIDTH = 50;
+
+// var START_NODE_ROW = getRandomInteger(0, HEIGHT);
+// var START_NODE_COL = getRandomInteger(0, WIDTH);
+// var FINISH_NODE_ROW = getRandomInteger(0, HEIGHT);
+// var FINISH_NODE_COL = getRandomInteger(0, WIDTH);
+// while (START_NODE_ROW == FINISH_NODE_ROW) {
+//   FINISH_NODE_ROW = getRandomInteger(0, HEIGHT);
+// }
+// while (START_NODE_COL == FINISH_NODE_COL) {
+//   FINISH_NODE_COL = getRandomInteger(0, WIDTH);
+// }
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -161,6 +177,39 @@ export default class PathfindingVisualizer extends Component {
 
   getPrevBoard() {
     console.log("TODO: Implement use previous board function");
+    const grid = this.refreshBoardForPathfinding(this.state.grid);
+    for (const row of grid) {
+      for (const node of row) {
+        let flag = false
+        if (node.isStart === true) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-start';
+          flag = true
+        }
+        if (node.isEnd === true) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-finish';
+          flag = true
+        }
+        if (node.isWall === true) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-wall';
+          flag = true
+        }
+        if (node.isWeight == true) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node node-weight';
+          flag = true
+        }
+        // Rest other nodes which were visualized as visited & shortest path nodes
+        if (flag === false) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            'node';
+        }
+      }
+    }
+    this.setState({ grid });
+    this.enableExceptClearboard();
   }
 
 
@@ -330,7 +379,7 @@ export default class PathfindingVisualizer extends Component {
     );
   }
 
-  // Pathfinding Algorithms Helper FUnctions
+  // Pathfinding Algorithms Helper Functions
   refreshBoardForPathfinding(currGrid) {
     // Defaults visited & distance of each node. Need this before
     // running the pathfinding algorithms
@@ -360,8 +409,6 @@ export default class PathfindingVisualizer extends Component {
     grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    // console.log(visitedNodesInOrder);
-    // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeBFS(diagonal) {
@@ -381,8 +428,6 @@ export default class PathfindingVisualizer extends Component {
     grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = bfs(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    // console.log(visitedNodesInOrder);
-    // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeDFS(diagonal) {
@@ -402,12 +447,9 @@ export default class PathfindingVisualizer extends Component {
     grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = dfs(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    // console.log(visitedNodesInOrder);
-    // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   visualizeAStar(diagonal) {
-    // console.log("TODO: Implement A* Algorithm")
     if (START_NODE_ROW == -1 || START_NODE_COL == -1) {
       alert("start node isn't selected");
       return;
@@ -424,8 +466,6 @@ export default class PathfindingVisualizer extends Component {
     grid = this.refreshBoardForPathfinding(grid);
     const visitedNodesInOrder = astar(grid, startNode, finishNode, diagonal);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    console.log(visitedNodesInOrder);
-    console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
@@ -586,6 +626,3 @@ const getNewGridWithWeightToggled = (grid, row, col) => {
   return newGrid;
 }
 
-const getRandomInteger = (min, max) => {
-  return Math.floor(Math.random() * (max - min)) + min;
-}

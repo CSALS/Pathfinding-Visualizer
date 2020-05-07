@@ -68,6 +68,7 @@ export function astar(grid, startNode, finishNode, diagonal) {
             }
         }
     }
+    // No path
     return visitedNodesInOrder;
 }
 
