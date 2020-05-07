@@ -37,8 +37,9 @@ export function dijkstra(grid, startNode, finishNode, diagonal) {
       const neighbor = grid[new_x][new_y];
       if (neighbor.isVisited == true || neighbor.isWall == true) continue;
       if (closestNode.distance + 1 < neighbor.distance) {
-        neighbor.distance = closestNode.distance + 1;
-        if (neighbor.isWeight) neighbor.distance *= 2;
+        let edge_wt = 1;
+        if (neighbor.isWeight) edge_wt *= 10;
+        neighbor.distance = closestNode.distance + edge_wt;
         neighbor.previousNode = closestNode;
       }
     }
@@ -54,8 +55,9 @@ export function dijkstra(grid, startNode, finishNode, diagonal) {
         const neighbor = grid[new_x][new_y];
         if (neighbor.isVisited == true || neighbor.isWall == true) continue;
         if (closestNode.distance + 1.2 < neighbor.distance) {
-          neighbor.distance = closestNode.distance + 1.2;
-          if (neighbor.isWeight) neighbor.distance *= 2;
+          let edge_wt = 1.2;
+          if (neighbor.isWeight) edge_wt *= 10;
+          neighbor.distance = closestNode.distance + edge_wt;
           neighbor.previousNode = closestNode;
         }
       }

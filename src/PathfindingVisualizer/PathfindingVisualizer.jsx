@@ -3,6 +3,7 @@ import Node from './Node/Node';
 import { dijkstra, getNodesInShortestPathOrder } from '../PathfindingAlgorithms/dijkstra';
 import { bfs } from '../PathfindingAlgorithms/bfs';
 import { dfs } from '../PathfindingAlgorithms/dfs';
+import { astar } from '../PathfindingAlgorithms/astar';
 import { dfsMaze } from '../MazeAlgorithms/dfsMaze';
 
 import './PathfindingVisualizer.css';
@@ -164,8 +165,8 @@ export default class PathfindingVisualizer extends Component {
 
 
 
-  handleAlgorithmsDropdown() {
-    let algorithmsContainer = document.getElementsByClassName("dropdown-container")[0].style;
+  handleAlgorithmsDropdown(index) {
+    let algorithmsContainer = document.getElementsByClassName("dropdown-container")[index].style;
     if (algorithmsContainer.display === "block") {
       algorithmsContainer.display = "none";
     }
@@ -261,7 +262,9 @@ export default class PathfindingVisualizer extends Component {
           <button id="end_node" onClick={() => this.placeEndNode()}>End Node</button>
           <button id="wall_node" onClick={() => this.placeWallNode()} title="Click on any cell and then keep moving to create walls. Click again to stop">Wall Node</button>
           <button id="weight_node" onClick={() => this.placeWeightNode()} title="Click on any cell and then keep moving to create weights. Click again to stop">Weight Node</button>
-          <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown()}>Algorithms<i className="fa fa-caret-down"></i></button>
+
+          {/* Dropdown of pathfinding algorithms BEGIN */}
+          <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown(0)}>Pathfinding Algorithms<i className="fa fa-caret-down"></i></button>
           <div className="dropdown-container" id="dropdown-container">
             {/* BFS */}
             <button className="visualize" onClick={() => this.handleEachAlgorithmDropdown("bfs")}>Visualize BFS Algorithm</button>
@@ -280,15 +283,24 @@ export default class PathfindingVisualizer extends Component {
             <button id="astar_d" onClick={() => this.visualizeAStar(true)} >Diagonal Movement Allowed</button>
             <button id="astar_nd" onClick={() => this.visualizeAStar(false)} >No Diagonal Movement Allowed</button>
           </div>
+          {/* Dropdown of pathfinding algorithms END */}
+
+          {/* Dropdown of maze algorithms BEGIN */}
+          <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown(1)}>Maze Algorithms<i className="fa fa-caret-down"></i></button>
+          <div className="dropdown-container" id="dropdown-container">
+            {/* Randomized DFS */}
+            <button className="visualize" onClick={() => this.genRandomBoard()}>Visualize Randomized DFS Algorithm</button>
+          </div>
+          {/* Dropdown of maze algorithms END */}
+
           <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
-          <button id="randomBoard" onClick={() => this.genRandomBoard()}>Generate random board</button>
           <button id="prevGrid" onClick={() => this.getPrevBoard()}>Use Previous Board</button>
         </div>
 
 
         <div className="main info">
           Adding WALL on cell makes it <strong>impenetrable</strong> <br></br>
-          Adding WEIGHT on cell <strong>increases</strong> the cost to pass throught it. Here the cost is doubled
+          Adding WEIGHT on cell <strong>increases</strong> the cost to pass throught it. Here the cost is multiplied 10 times.
         </div>
 
         <div className="grid main">
@@ -394,6 +406,28 @@ export default class PathfindingVisualizer extends Component {
     // console.log(nodesInShortestPathOrder);
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
+  visualizeAStar(diagonal) {
+    // console.log("TODO: Implement A* Algorithm")
+    if (START_NODE_ROW == -1 || START_NODE_COL == -1) {
+      alert("start node isn't selected");
+      return;
+    }
+    if (FINISH_NODE_ROW == -1 || FINISH_NODE_COL == -1) {
+      alert("end node isn't selected");
+    }
+    document.getElementsByClassName("info")[0].innerHTML =
+      "A* Search Algorithm is <strong>weighted</strong> algorithm and <strong>guarentees</strong> shortest path<br></br><strong>Faster</strong> than Dijkstra's since it uses <strong>Heuristics</strong>";
+    this.disableExceptClearboard();
+    let { grid } = this.state;
+    const startNode = grid[START_NODE_ROW][START_NODE_COL];
+    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    grid = this.refreshBoardForPathfinding(grid);
+    const visitedNodesInOrder = astar(grid, startNode, finishNode, diagonal);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    console.log(visitedNodesInOrder);
+    console.log(nodesInShortestPathOrder);
+    this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
+  }
   animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
     for (let i = 1; i <= visitedNodesInOrder.length - 1; i++) {
       if (i === visitedNodesInOrder.length - 1) {
@@ -406,7 +440,8 @@ export default class PathfindingVisualizer extends Component {
       }
       setTimeout(() => {
         const node = visitedNodesInOrder[i];
-        if (node === startNode || node === finishNode) return;
+        if (node.row === START_NODE_ROW && node.col === START_NODE_COL) return;
+        if (node.row === FINISH_NODE_ROW && node.col === FINISH_NODE_COL) return;
         document.getElementById(`node-${node.row}-${node.col}`).className =
           'node node-visited';
       }, TIME_INTERVAL * i);
