@@ -21,6 +21,7 @@ INFORMED SEARCH (heuristics)
 - Maze Division Algo = https://stackoverflow.com/questions/41553775/maze-generation-recursive-division-how-it-works
 
 **Frontend side**
+- Add stop, play, pause, RESET button
 - Add use same board button which when clicked displays same board used before an algorithm is visualized
 - Update grid size responsively (Help Needed)
 
