@@ -20,6 +20,8 @@ var START_NODE_ROW = -1;
 var START_NODE_COL = -1;
 var FINISH_NODE_ROW = -1;
 var FINISH_NODE_COL = -1;
+var stopAnimating = false;
+var pause = false;
 
 // var START_NODE_ROW = getRandomInteger(0, HEIGHT);
 // var START_NODE_COL = getRandomInteger(0, WIDTH);
@@ -31,6 +33,7 @@ var FINISH_NODE_COL = -1;
 // while (START_NODE_COL == FINISH_NODE_COL) {
 //   FINISH_NODE_COL = getRandomInteger(0, WIDTH);
 // }
+
 
 export default class PathfindingVisualizer extends Component {
   constructor() {
@@ -47,8 +50,19 @@ export default class PathfindingVisualizer extends Component {
     };
   }
   componentDidMount() {
+    stopAnimating = false;
+    pause = false;
     const grid = getInitialGrid();
     this.setState({ grid: grid });
+    document.getElementById('stopAnimating').addEventListener('click', function () {
+      stopAnimating = true;
+    });
+    document.getElementById('pauseAnimating').addEventListener('click', function () {
+      pause = true;
+    });
+    document.getElementById('playAnimating').addEventListener('click', function () {
+      pause = false;
+    });
   }
   placeStartNode() {
     this.setState({ isPlaceStart: true });
@@ -173,10 +187,11 @@ export default class PathfindingVisualizer extends Component {
     START_NODE_COL = -1;
     FINISH_NODE_ROW = -1;
     FINISH_NODE_COL = -1;
+    stopAnimating = false;
+    pause = false;
   }
 
   getPrevBoard() {
-    console.log("TODO: Implement use previous board function");
     const grid = this.refreshBoardForPathfinding(this.state.grid);
     for (const row of grid) {
       for (const node of row) {
@@ -344,6 +359,9 @@ export default class PathfindingVisualizer extends Component {
 
           <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
           <button id="prevGrid" onClick={() => this.getPrevBoard()}>Use Previous Board</button>
+          <button id="stopAnimating">Stop Animation</button>
+          <button id="pauseAnimating">Pause Animation</button>
+          <button id="playAnimating">Play Animation</button>
         </div>
 
 
@@ -469,50 +487,61 @@ export default class PathfindingVisualizer extends Component {
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
-    for (let i = 1; i <= visitedNodesInOrder.length - 1; i++) {
-      if (i === visitedNodesInOrder.length - 1) {
-        setTimeout(() => {
-          this.animateShortestPath(nodesInShortestPathOrder);
-          // Enable clear button
-          document.getElementById("clear").disabled = false;
-        }, TIME_INTERVAL * i);
+    var i = 1;
+    var animatingShortestPath = this.animateShortestPath;
+    var enableExceptClearboard = this.enableExceptClearboard;
+    function animate() {
+      if (stopAnimating) {
+        enableExceptClearboard();
         return;
       }
-      setTimeout(() => {
-        const node = visitedNodesInOrder[i];
-        if (node.row === START_NODE_ROW && node.col === START_NODE_COL) return;
-        if (node.row === FINISH_NODE_ROW && node.col === FINISH_NODE_COL) return;
-        document.getElementById(`node-${node.row}-${node.col}`).className =
-          'node node-visited';
-      }, TIME_INTERVAL * i);
+
+      if (i == visitedNodesInOrder.length - 1) {
+        console.log("animating shortest path");
+        animatingShortestPath(nodesInShortestPathOrder);
+        document.getElementById("clear").disabled = false;
+        return;
+      }
+
+      const node = visitedNodesInOrder[i];
+      if (!(node.row === START_NODE_ROW && node.col === START_NODE_COL) || (node.row === FINISH_NODE_ROW && node.col === FINISH_NODE_COL)) {
+        document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-visited';
+      }
+      i++;
+      requestAnimationFrame(animate);
     }
+    animate();
   }
 
   animateShortestPath(nodesInShortestPathOrder) {
     const firstNodeInShortestPath = nodesInShortestPathOrder[0];
     if (!(firstNodeInShortestPath.row === START_NODE_ROW && firstNodeInShortestPath.col === START_NODE_COL)) {
-      setTimeout(() => {
-        alert("No Shortest Path");
-      }, TIME_INTERVAL)
+      alert("No Shortest Path");
       return;
     }
     const node = nodesInShortestPathOrder[0];
-    document.getElementById(`node-${node.row}-${node.col}`).className =
-      'node node-shortest-path node-start';
+    document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-shortest-path node-start';
 
-    for (let i = 1; i < nodesInShortestPathOrder.length; i++) {
-      setTimeout(() => {
-        const node = nodesInShortestPathOrder[i];
-        if (i == nodesInShortestPathOrder.length - 1) {
-          document.getElementById(`node-${node.row}-${node.col}`).className =
-            'node node-shortest-path node-finish';
-        }
-        else {
-          document.getElementById(`node-${node.row}-${node.col}`).className =
-            'node node-shortest-path';
-        }
-      }, 2 * TIME_INTERVAL * i);
+    var i = 1;
+    var enableExceptClearboard = this.enableExceptClearboard;
+    function animate() {
+      if (stopAnimating) {
+        enableExceptClearboard();
+        return;
+      }
+      const node = nodesInShortestPathOrder[i];
+      if (i == nodesInShortestPathOrder.length - 1) {
+        document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-shortest-path node-finish';
+        return;
+      }
+      else {
+        document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-shortest-path';
+      }
+      i++;
+
+      requestAnimationFrame(animate);
     }
+    animate();
   }
 
   refreshBoardForMaze(currGrid) {
