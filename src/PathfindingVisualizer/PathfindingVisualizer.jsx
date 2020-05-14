@@ -364,6 +364,8 @@ export default class PathfindingVisualizer extends Component {
           <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
           <button id="prevGrid" onClick={() => this.getPrevBoard()}>Use Previous Board</button>
           <button id="stopAnimating">Stop Animation</button>
+          <button id="pauseAnimating">Pause Animation</button>
+          <button id="playAnimating">Play Animation</button>
         </div>
 
 
