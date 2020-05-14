@@ -5,10 +5,12 @@ import { bfs } from '../PathfindingAlgorithms/bfs';
 import { dfs } from '../PathfindingAlgorithms/dfs';
 import { astar } from '../PathfindingAlgorithms/astar';
 import { dfsMaze } from '../MazeAlgorithms/dfsMaze';
+import { recursiveDivision } from '../MazeAlgorithms/recursiveDivision';
 
 import './PathfindingVisualizer.css';
 
 const getRandomInteger = (min, max) => {
+  max = max + 1;
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
@@ -353,15 +355,15 @@ export default class PathfindingVisualizer extends Component {
           <button className="dropdown-btn" onClick={() => this.handleAlgorithmsDropdown(1)}>Maze Algorithms<i className="fa fa-caret-down"></i></button>
           <div className="dropdown-container" id="dropdown-container">
             {/* Randomized DFS */}
-            <button className="visualize" onClick={() => this.genRandomBoard()}>Visualize Randomized DFS Algorithm</button>
+            <button className="visualize" onClick={() => this.visualizeDFSMaze()}>Visualize Randomized DFS Algorithm</button>
+            {/* Recursive Division */}
+            <button className="visualize" onClick={() => this.visualizeRecursiveDivision()}>Visualize Recursive Division Algorithm</button>
           </div>
           {/* Dropdown of maze algorithms END */}
 
           <button id="clear" onClick={() => this.clearBoard()}>Clear Board</button>
           <button id="prevGrid" onClick={() => this.getPrevBoard()}>Use Previous Board</button>
           <button id="stopAnimating">Stop Animation</button>
-          <button id="pauseAnimating">Pause Animation</button>
-          <button id="playAnimating">Play Animation</button>
         </div>
 
 
@@ -487,9 +489,9 @@ export default class PathfindingVisualizer extends Component {
     this.animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode);
   }
   animateVisitedNodes(visitedNodesInOrder, nodesInShortestPathOrder, startNode, finishNode) {
-    var i = 1;
-    var animatingShortestPath = this.animateShortestPath;
-    var enableExceptClearboard = this.enableExceptClearboard;
+    let i = 1;
+    let animatingShortestPath = this.animateShortestPath;
+    let enableExceptClearboard = this.enableExceptClearboard;
     function animate() {
       if (stopAnimating) {
         enableExceptClearboard();
@@ -498,7 +500,7 @@ export default class PathfindingVisualizer extends Component {
 
       if (i == visitedNodesInOrder.length - 1) {
         console.log("animating shortest path");
-        animatingShortestPath(nodesInShortestPathOrder);
+        animatingShortestPath(nodesInShortestPathOrder, enableExceptClearboard);
         document.getElementById("clear").disabled = false;
         return;
       }
@@ -513,7 +515,7 @@ export default class PathfindingVisualizer extends Component {
     animate();
   }
 
-  animateShortestPath(nodesInShortestPathOrder) {
+  animateShortestPath(nodesInShortestPathOrder, enableExceptClearboard) {
     const firstNodeInShortestPath = nodesInShortestPathOrder[0];
     if (!(firstNodeInShortestPath.row === START_NODE_ROW && firstNodeInShortestPath.col === START_NODE_COL)) {
       alert("No Shortest Path");
@@ -522,8 +524,7 @@ export default class PathfindingVisualizer extends Component {
     const node = nodesInShortestPathOrder[0];
     document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-shortest-path node-start';
 
-    var i = 1;
-    var enableExceptClearboard = this.enableExceptClearboard;
+    let i = 1;
     function animate() {
       if (stopAnimating) {
         enableExceptClearboard();
@@ -556,7 +557,7 @@ export default class PathfindingVisualizer extends Component {
   }
 
 
-  genRandomBoard() {
+  visualizeDFSMaze() {
     // this.clearBoard();
     //21*51 board
     let { grid } = this.state;
@@ -570,15 +571,30 @@ export default class PathfindingVisualizer extends Component {
       start_y = getRandomInteger(0, WIDTH);
     }
     const visitedNodesInOrder = dfsMaze(grid, start_x, start_y);
-    grid = this.refreshBoardForMaze(grid);
-    for (let i = 0; i < visitedNodesInOrder.length; ++i) {
-      setTimeout(() => {
-        const node = visitedNodesInOrder[i];
-        node.isWall = true;
-        this.setState({ grid });
-      }, 0);
+    this.animateMaze(visitedNodesInOrder);
+  }
+
+  visualizeRecursiveDivision() {
+    let { grid } = this.state;
+    const visitedNodesInOrder = recursiveDivision(grid);
+    this.animateMaze(visitedNodesInOrder);
+  }
+
+  animateMaze(visitedNodesInOrder) {
+    let i = 1;
+    let enableExceptClearboard = this.enableExceptClearboard;
+    function animate() {
+      if (stopAnimating) {
+        enableExceptClearboard();
+        return;
+      }
+
+      const node = visitedNodesInOrder[i];
+      document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-wall';
+      i++;
+      requestAnimationFrame(animate);
     }
-    this.setState({ grid });
+    animate();
   }
 }
 
